@@ -69,6 +69,7 @@ nvm_print_npm_version() {
 get_npm_global_prefix() {
 	echo $(cd $(dirname $(which node))/../ && pwd)
 }
+
 # Make zsh glob matching behave same as bash
 # This fixes the "zsh: no matches found" errors
 if nvm_has "unsetopt"; then
@@ -206,7 +207,7 @@ nvm_ensure_version_installed() {
   EXIT_CODE="$?"
   local NVM_VERSION_DIR
   if [ "_$EXIT_CODE" = "_0" ]; then
-  NVM_VERSION_DIR="$(nvm_version_path "$LOCAL_VERSION")"
+    NVM_VERSION_DIR="$(nvm_version_path "$LOCAL_VERSION")"
   fi
   if [ "_$EXIT_CODE" != "_0" ] || [ ! -d "$NVM_VERSION_DIR" ]; then
     VERSION="$(nvm_resolve_alias "$PROVIDED_VERSION")"
@@ -833,7 +834,7 @@ nvm_print_implicit_alias() {
       if [ "_$NVM_IOJS_VERSION" = "_N/A" ]; then
         echo "N/A"
       else
-        echo "$($NVM_ADD_PREFIX_COMMAND "$NVM_IOJS_VERSION")"
+      echo "$($NVM_ADD_PREFIX_COMMAND "$NVM_IOJS_VERSION")"
       fi
       return $EXIT_CODE
     ;;
@@ -877,11 +878,11 @@ nvm_print_implicit_alias() {
       STABLE="$MINOR"
     else
       MOD=$(expr "$NORMALIZED_VERSION" \/ 1000000 \% 2)
-    if [ $MOD -eq 0 ]; then
-      STABLE="$MINOR"
-    elif [ $MOD -eq 1 ]; then
-      UNSTABLE="$MINOR"
-    fi
+      if [ $MOD -eq 0 ]; then
+        STABLE="$MINOR"
+      elif [ $MOD -eq 1 ]; then
+        UNSTABLE="$MINOR"
+      fi
     fi
   done
   if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
@@ -1388,15 +1389,15 @@ nvm() {
       do
         case "$1" in
           --reinstall-packages-from=*)
-          PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 27-)"
-          REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
+            PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 27-)"
+            REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
           ;;
           --copy-packages-from=*)
-          PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 22-)"
-          REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
+            PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 22-)"
+            REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
           ;;
           *)
-          ADDITIONAL_PARAMETERS="$ADDITIONAL_PARAMETERS $1"
+            ADDITIONAL_PARAMETERS="$ADDITIONAL_PARAMETERS $1"
           ;;
         esac
         shift
@@ -1468,7 +1469,7 @@ nvm() {
           nvm reinstall-packages "$REINSTALL_PACKAGES_FROM"
         fi
       fi
-        return $?
+      return $?
     ;;
     "uninstall" )
       if [ $# -ne 2 ]; then
@@ -1582,20 +1583,24 @@ nvm() {
 	  local NPM_GLOBAL_PREFIX
       if [ "_$VERSION" = '_system' ]; then
         if nvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
-          echo "Now using system version of node: $(node -v 2>/dev/null)."
           NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
-	  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
           npm config set prefix ${NPM_GLOBAL_PREFIX}
+          if [ $NVM_USE_SILENT -ne 1 ]; then
+            echo "Now using system version of node: $(node -v 2>/dev/null)$(nvm_print_npm_version)"
+            echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}  
+          fi
           return
         elif nvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
-          echo "Now using system version of io.js: $(iojs --version 2>/dev/null)."
           NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
-	  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
-	  npm config set prefix ${NPM_GLOBAL_PREFIX}
+          npm config set prefix ${NPM_GLOBAL_PREFIX}
+          if [ $NVM_USE_SILENT -ne 1 ]; then
+            echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(nvm_print_npm_version)"
+            echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
+          fi
           return
         else
           if [ $NVM_USE_SILENT -ne 1 ]; then
-          echo "System version of node not found." >&2
+            echo "System version of node not found." >&2
           fi
           return 127
         fi
