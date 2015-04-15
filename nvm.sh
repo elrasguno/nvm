@@ -58,6 +58,10 @@ nvm_has_system_iojs() {
   [ "$(nvm deactivate >/dev/null 2>&1 && command -v iojs)" != '' ]
 }
 
+get_npm_global_prefix() {
+	echo $(cd $(dirname $(which node))/../ && pwd)
+}
+
 # Make zsh glob matching behave same as bash
 # This fixes the "zsh: no matches found" errors
 if nvm_has "unsetopt"; then
@@ -1322,16 +1326,24 @@ nvm() {
         esac
       fi
 
+
       if [ -z "$VERSION" ]; then
         nvm help
         return 127
       fi
 
+	  local NPM_GLOBAL_PREFIX
       if [ "_$VERSION" = '_system' ]; then
         if nvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
+	      NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
+		  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
+		  npm config set prefix ${NPM_GLOBAL_PREFIX}
           echo "Now using system version of node: $(node -v 2>/dev/null)."
           return
         elif nvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
+	      NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
+		  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
+		  npm config set prefix ${NPM_GLOBAL_PREFIX}
           echo "Now using system version of io.js: $(iojs --version 2>/dev/null)."
           return
         else
@@ -1378,6 +1390,9 @@ nvm() {
       else
         echo "Now using node $VERSION"
       fi
+	  NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
+	  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
+	  npm config set prefix ${NPM_GLOBAL_PREFIX}
     ;;
     "run" )
       local provided_version
