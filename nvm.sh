@@ -70,6 +70,24 @@ get_npm_global_prefix() {
 	echo $(cd $(dirname $(which node))/../ && pwd)
 }
 
+backup_node_binary() {
+	cp -v /usr/local/bin/node /usr/local/bin/node.bak
+}
+
+symlink_node_binary() {
+	ln -sf $(which node) /usr/local/bin/node 
+	return $?
+}
+
+symlink_node_modules() {
+	pushd /usr/local/lib
+	rm -rfv /usr/local/lib/node_modules
+	RES=$(ln -sf $(npm root -g))
+	popd
+	return ${RES} 
+}
+
+
 # Make zsh glob matching behave same as bash
 # This fixes the "zsh: no matches found" errors
 if nvm_has "unsetopt"; then
@@ -1585,6 +1603,9 @@ nvm() {
         if nvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
           NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
           npm config set prefix ${NPM_GLOBAL_PREFIX}
+		  symlink_node_modules
+		  backup_node_binary
+		  symlink_node_binary
           if [ $NVM_USE_SILENT -ne 1 ]; then
             echo "Now using system version of node: $(node -v 2>/dev/null)$(nvm_print_npm_version)"
             echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}  
@@ -1593,6 +1614,9 @@ nvm() {
         elif nvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
           NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
           npm config set prefix ${NPM_GLOBAL_PREFIX}
+		  symlink_node_modules
+		  backup_node_binary
+		  symlink_node_binary
           if [ $NVM_USE_SILENT -ne 1 ]; then
             echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(nvm_print_npm_version)"
             echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
@@ -1655,6 +1679,9 @@ nvm() {
 	  NPM_GLOBAL_PREFIX=$(get_npm_global_prefix)
 	  echo Updating npm global "prefix" to ${NPM_GLOBAL_PREFIX}
 	  npm config set prefix ${NPM_GLOBAL_PREFIX}
+	  symlink_node_modules
+	  backup_node_binary
+	  symlink_node_binary
     ;;
     "run" )
       local provided_version
